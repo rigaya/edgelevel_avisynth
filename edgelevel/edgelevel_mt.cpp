@@ -30,7 +30,6 @@
 #include <algorithm>
 #include <emmintrin.h>
 #include <process.h>
-#include <stdint.h>
 #pragma comment(lib, "winmm.lib")
 #include "edgelevel.h"
 
@@ -132,7 +131,7 @@ static __forceinline __m128i edgelevel_sse2_8(
     xMin  = _mm_subs_epu8(xMin, xBc);
     xMin  = _mm_subs_epu8(xMin, _mm_and_si128(xBc, xMaskMin));
 
-    //dst[x] = (BYTE)clamp(src[x] + (((src[x] - avg) * strength) >> 4), (std::max)(min, 0), (std::min)(max, 255));
+    //dst[x] = (uint8_t)clamp(src[x] + (((src[x] - avg) * strength) >> 4), (std::max)(min, 0), (std::min)(max, 255));
     __m128i x0, x1;
     x0    = _mm_sub_epi16(_mm_unpacklo_epi8(xSrc1, _mm_setzero_si128()), _mm_unpacklo_epi8(xAvg, _mm_setzero_si128()));
     x1    = _mm_sub_epi16(_mm_unpackhi_epi8(xSrc1, _mm_setzero_si128()), _mm_unpackhi_epi8(xAvg, _mm_setzero_si128()));
@@ -389,11 +388,11 @@ unsigned int __stdcall RunThread(void *arg) {
     return 0;
 }
 
-BOOL CreateThreads(int threads, frame_buf_t *_buf, edegelevel_prm_t *_prm, mt_control_t *mt_control) {
+bool CreateThreads(int threads, frame_buf_t *_buf, edegelevel_prm_t *_prm, mt_control_t *mt_control) {
     if (!check_range(threads, 0, MAX_THREADS))
         return FALSE;
 
-    BOOL ret = TRUE;
+    bool ret = TRUE;
     mt_control->threads = threads;
     for (int i = 0; i < threads; i++) {
         mt_control->th_prm[i].abort = FALSE;

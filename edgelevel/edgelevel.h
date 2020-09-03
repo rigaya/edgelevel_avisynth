@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 const int MAX_THREADS = 32;
 
 #define clamp(x, low, high) (((x) <= (high)) ? (((x) >= (low)) ? (x) : (low)) : (high))
@@ -41,11 +43,11 @@ static inline bool check_range(double value, double min, double max) {
 }
 
 typedef struct {
-	BYTE *src_ptr[3];
+	uint8_t *src_ptr[3];
 	int src_pitch[3];
 	int src_width[3];
 	int src_height[3];
-	BYTE *dst_ptr[3];
+	uint8_t *dst_ptr[3];
 	int dst_pitch[3];
 	int dst_width[3];
 	int dst_height[3];
@@ -64,7 +66,7 @@ typedef struct {
 typedef struct {
 	int thread_id;
 	int threads;
-	BOOL abort;
+	bool abort;
 	HANDLE he_start;
 	HANDLE he_fin;
 	frame_buf_t *buf;
@@ -78,6 +80,6 @@ typedef struct {
 	int threads;
 } mt_control_t;
 
-BOOL CreateThreads(int threads, frame_buf_t *_buf, edegelevel_prm_t *_prm, mt_control_t *mt_control);
+bool CreateThreads(int threads, frame_buf_t *_buf, edegelevel_prm_t *_prm, mt_control_t *mt_control);
 void FinishThreads(mt_control_t *mt_control);
 void StartProcessFrame(mt_control_t *mt_control);

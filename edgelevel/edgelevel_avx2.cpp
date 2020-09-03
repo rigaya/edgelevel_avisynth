@@ -29,9 +29,6 @@
 #include <Windows.h>
 #include <algorithm>
 #include <immintrin.h>
-#include <process.h>
-#include <stdint.h>
-#pragma comment(lib, "winmm.lib")
 #include "edgelevel.h"
 
 //本来の256bit alignr
@@ -121,7 +118,7 @@ static __forceinline __m256i edgelevel_avx2_8(
     xMin  = _mm256_subs_epu8(xMin, yBc);
     xMin  = _mm256_subs_epu8(xMin, _mm256_and_si256(yBc, xMaskMin));
 
-    //dst[x] = (BYTE)clamp(src[x] + (((src[x] - avg) * strength) >> 4), (std::max)(min, 0), (std::min)(max, 255));
+    //dst[x] = (uint8_t)clamp(src[x] + (((src[x] - avg) * strength) >> 4), (std::max)(min, 0), (std::min)(max, 255));
     __m256i y0, y1;
     y0    = _mm256_sub_epi16(_mm256_unpacklo_epi8(ySrc1, _mm256_setzero_si256()), _mm256_unpacklo_epi8(xAvg, _mm256_setzero_si256()));
     y1    = _mm256_sub_epi16(_mm256_unpackhi_epi8(ySrc1, _mm256_setzero_si256()), _mm256_unpackhi_epi8(xAvg, _mm256_setzero_si256()));

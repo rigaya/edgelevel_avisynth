@@ -42,9 +42,9 @@
 
 const AVS_Linkage *AVS_linkage = 0;
 
-static void copy_y_from_yuy2_sse2(BYTE *dst_ptr, int dst_pitch, const BYTE *src_ptr, int src_pitch, int width, int height) {
-    const BYTE *src, *src_fin;
-    BYTE *dst;
+static void copy_y_from_yuy2_sse2(uint8_t *dst_ptr, int dst_pitch, const uint8_t *src_ptr, int src_pitch, int width, int height) {
+    const uint8_t *src, *src_fin;
+    uint8_t *dst;
     __m128i x0, x1, x2;
     for (int y = 0; y < height; y++) {
         dst = dst_ptr + dst_pitch * y;
@@ -64,9 +64,9 @@ static void copy_y_from_yuy2_sse2(BYTE *dst_ptr, int dst_pitch, const BYTE *src_
     }
 }
 
-static void copy_to_yuy2_sse2(BYTE *dst_ptr, int dst_pitch, const BYTE *y_src_ptr, int y_src_pitch, const BYTE *uv_src_ptr, int uv_src_pitch, int width, int height) {
-    const BYTE *y_src, *y_src_fin, *uv_src;
-    BYTE *dst;
+static void copy_to_yuy2_sse2(uint8_t *dst_ptr, int dst_pitch, const uint8_t *y_src_ptr, int y_src_pitch, const uint8_t *uv_src_ptr, int uv_src_pitch, int width, int height) {
+    const uint8_t *y_src, *y_src_fin, *uv_src;
+    uint8_t *dst;
     __m128i x0, x1, x2;
     __m128i x3 = _mm_setzero_si128();
     for (int y = 0; y < height; y++) {
@@ -116,20 +116,20 @@ private:
 public:
     edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, int _asmmode, IScriptEnvironment *env);
     ~edgelevel();
-    BOOL AllocBuffer();
+    bool AllocBuffer();
     void FreeBuffer();
     PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment *env);
 };
 #pragma warning(pop)
 
-BOOL edgelevel::AllocBuffer() {
+bool edgelevel::AllocBuffer() {
     if (vi.IsYUY2()) {
         buf.planes = 1;
         buf.src_pitch[0] = vi.width;
         buf.dst_pitch[0] = vi.width;
         int frame_buffer_size = ((vi.width * vi.height) + 15) & ~15;
-        if (NULL == (buf.dst_ptr[0] = (BYTE *)_aligned_malloc(frame_buffer_size, 16)) ||
-            NULL == (buf.src_ptr[0] = (BYTE *)_aligned_malloc(frame_buffer_size, 16))) {
+        if (NULL == (buf.dst_ptr[0] = (uint8_t *)_aligned_malloc(frame_buffer_size, 16)) ||
+            NULL == (buf.src_ptr[0] = (uint8_t *)_aligned_malloc(frame_buffer_size, 16))) {
                 return FALSE;
         }
     }
@@ -194,7 +194,7 @@ PVideoFrame __stdcall edgelevel::GetFrame(int n, IScriptEnvironment *env) {
     } else {
         //YV12
         int componentSize = vi.BytesFromPixels(1);
-        buf.src_ptr[0] = (BYTE *)src->GetReadPtr();
+        buf.src_ptr[0] = (uint8_t *)src->GetReadPtr();
         buf.dst_ptr[0] = dst->GetWritePtr();
         buf.src_pitch[0] = src->GetPitch();
         buf.dst_pitch[0] = dst->GetPitch();
