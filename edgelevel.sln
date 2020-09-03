@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C++ Express 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28729.10
+MinimumVisualStudioVersion = 11.0.50727.42
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "edgelevel", "edgelevel\edgelevel.vcxproj", "{794A9743-22AA-4270-A2AB-1418F9829BD5}"
 EndProject
 Global
