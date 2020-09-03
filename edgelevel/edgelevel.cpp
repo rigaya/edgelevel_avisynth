@@ -105,14 +105,14 @@ private:
     const int thrs;      // 閾値
     const int bc;        // 黒補正
     const int wc;        // 白補正
-    const int asmmode;
+    const int simd;
     edegelevel_prm_t prm;
     mt_control_t mt_control;
     int threads;         // スレッド数
     frame_buf_t buf;
 
 public:
-    edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, int _asmmode, IScriptEnvironment *env);
+    edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, int _simd, IScriptEnvironment *env);
     ~edgelevel();
     bool AllocBuffer();
     void FreeBuffer();
@@ -142,8 +142,8 @@ void edgelevel::FreeBuffer() {
     buf.planes = 0;
 }
 
-edgelevel::edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, int _asmmode, IScriptEnvironment *env)
-    : GenericVideoFilter(_child), strength(_strength), thrs(_thrs), bc(_bc), wc(_wc), threads(_threads), asmmode(_asmmode) {
+edgelevel::edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, int _simd, IScriptEnvironment *env)
+    : GenericVideoFilter(_child), strength(_strength), thrs(_thrs), bc(_bc), wc(_wc), threads(_threads), simd(_simd) {
     if (!(vi.IsYUY2() || (vi.pixel_type & (VideoInfo::CS_PLANAR | VideoInfo::CS_YUV)) == (VideoInfo::CS_PLANAR | VideoInfo::CS_YUV))) {
         env->ThrowError("edgelevel: colorspace not supported.");
     }
@@ -152,14 +152,14 @@ edgelevel::edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, i
     if (!check_range(bc, 0, 31))               env->ThrowError("edgelevel: bc should be 0 - 31.");
     if (!check_range(wc, 0, 31))               env->ThrowError("edgelevel: wc should be 0 - 31.");
     if (!check_range(threads, 0, MAX_THREADS)) env->ThrowError("edgelevel: threads should be 0 - %d.", MAX_THREADS);
-    if (!check_range(asmmode, 0, 2))           env->ThrowError("edgelevel: asmmode should be 0 - 2.");
+    if (!check_range(simd, 0, 2))           env->ThrowError("edgelevel: simd should be 0 - 2.");
 
     prm.bit_depth = get_bitdepth(vi.pixel_type);
     prm.strength = strength;
     prm.thrs = thrs;
     prm.wc = wc;
     prm.bc = bc;
-    prm.avx2 = (asmmode == 0) ? ((env->GetCPUFlags() & CPUF_AVX2) != 0) : ((asmmode == 2) ? 1 : 0);
+    prm.avx2 = (simd == 0) ? ((env->GetCPUFlags() & CPUF_AVX2) != 0) : ((simd == 2) ? 1 : 0);
 
     ZeroMemory(&buf, sizeof(frame_buf_t));
 
@@ -224,6 +224,6 @@ AVSValue __cdecl Create_edgelevel(AVSValue args, void *user_data, IScriptEnviron
 extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment *env, const AVS_Linkage *const vectors)
 {
     AVS_linkage = vectors;
-    env->AddFunction("edgelevel", "c[strength]i[threshold]i[bc]i[wc]i[threads]i[asm]i", Create_edgelevel, 0);
-    return "edgelevel for avisynth 0.00";
+    env->AddFunction("edgelevel", "c[strength]i[threshold]i[bc]i[wc]i[threads]i[simd]i", Create_edgelevel, 0);
+    return "edgelevel for avisynth 0.01";
 }

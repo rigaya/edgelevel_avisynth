@@ -4,8 +4,7 @@
 [がらくたハウスのがらくた置き場様](http://www.geocities.jp/flash3kyuu/)の
 エッジレベル調整(edgelevelMT.auf)をAvisynthに移植したものです。
 
-また、AVX2 / SSE2 で高速化されています。
-環境に合わせて、最速のものが自動的に選択されます。
+AVX2 / SSE2 で高速化されています。環境に合わせて、最速のものが自動的に選択されます。
 
 
 ## ダウンロード & 更新履歴
@@ -24,7 +23,7 @@ Avisynth+ (x86/x64)
 
 ## オプション
 
-### edgelevel(clip, int "strength", int "threshold", int "bc", int "wc", int "thread", int "asm")
+### edgelevel(clip, int "strength", int "threshold", int "bc", int "wc", int "thread", int "simd")
 
 - strength (-31 ～ 31, デフォルト 10)  
   エッジの強調度合いを調整します。
@@ -43,18 +42,18 @@ Avisynth+ (x86/x64)
 - wc (0 ～ 31, デフォルト 0)  
    黒補正とは逆の処理です。
    
-- thread (0 ～ 32, デフォルト 0 (自動))
+- thread (0 ～ 32, デフォルト 0 (自動))  
    並列スレッド数です。
 
-- asm (0 ～ 2, デフォルト 0)
+- simd (0 ～ 2, デフォルト 0)
   - 0 (自動)
   - 1 (SSE2)
   - 2 (AVX2)
 
 ## 更新メモ
 #### 2020.09.04
-Avisynth+の高ビット深度に対応。
-AVX2に対応。
+Avisynth+の高ビット深度に対応。  
+AVX2に対応。  
 桁あふれによって正常に処理できないことがあったのを修正。
 
 #### 2012.03.06  
