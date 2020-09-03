@@ -26,7 +26,6 @@
 //
 // ------------------------------------------------------------------------------------------
 
-#include <Windows.h>
 #include <algorithm>
 #include <immintrin.h>
 #include "edgelevel.h"

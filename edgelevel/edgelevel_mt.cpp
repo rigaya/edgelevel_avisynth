@@ -26,12 +26,11 @@
 //
 // ------------------------------------------------------------------------------------------
 
-#include <Windows.h>
-#include <algorithm>
+
 #include <emmintrin.h>
+#include "edgelevel.h"
 #include <process.h>
 #pragma comment(lib, "winmm.lib")
-#include "edgelevel.h"
 
 static inline __m128i _mm_cmpgt_epu8(__m128i x, __m128i y) {
     // Returns 0xFF where x > y:
