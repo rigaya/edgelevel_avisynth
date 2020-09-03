@@ -86,6 +86,19 @@ static void copy_to_yuy2_sse2(BYTE *dst_ptr, int dst_pitch, const BYTE *y_src_pt
     }
 }
 
+static int get_bitdepth(int pixel_type) {
+    int bits = pixel_type & VideoInfo::CS_Sample_Bits_Mask;
+    switch (bits) {
+    case VideoInfo::CS_Sample_Bits_8: return 8;
+    case VideoInfo::CS_Sample_Bits_10: return 10;
+    case VideoInfo::CS_Sample_Bits_12: return 12;
+    case VideoInfo::CS_Sample_Bits_14: return 14;
+    case VideoInfo::CS_Sample_Bits_16: return 16;
+    case VideoInfo::CS_Sample_Bits_32: return 32;
+    }
+    return 0;
+}
+
 #pragma warning(push)
 #pragma warning(disable:4512)
 class edgelevel : public GenericVideoFilter {
@@ -94,13 +107,14 @@ private:
     const int thrs;      // 閾値
     const int bc;        // 黒補正
     const int wc;        // 白補正
+    const int asmmode;
     edegelevel_prm_t prm;
     mt_control_t mt_control;
     int threads;         // スレッド数
     frame_buf_t buf;
 
 public:
-    edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, IScriptEnvironment *env);
+    edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, int _asmmode, IScriptEnvironment *env);
     ~edgelevel();
     BOOL AllocBuffer();
     void FreeBuffer();
@@ -130,20 +144,24 @@ void edgelevel::FreeBuffer() {
     buf.planes = 0;
 }
 
-edgelevel::edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, IScriptEnvironment *env)
-    : GenericVideoFilter(_child), strength(_strength), thrs(_thrs), bc(_bc), wc(_wc), threads(_threads) {
-    if (!(env->GetCPUFlags() & CPUF_SSE2))     env->ThrowError("edgelevel: requires sse2 support.");
-    if (!(vi.IsYUY2() || vi.IsYV12()))         env->ThrowError("edgelevel: input colorspace must be YUY2 or YV12.");
+edgelevel::edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, int _asmmode, IScriptEnvironment *env)
+    : GenericVideoFilter(_child), strength(_strength), thrs(_thrs), bc(_bc), wc(_wc), threads(_threads), asmmode(_asmmode) {
+    if (!(vi.IsYUY2() || (vi.pixel_type & (VideoInfo::CS_PLANAR | VideoInfo::CS_YUV)) == (VideoInfo::CS_PLANAR | VideoInfo::CS_YUV))) {
+        env->ThrowError("edgelevel: colorspace not supported.");
+    }
     if (!check_range(strength, -31, 31))       env->ThrowError("edgelevel: strength should be -31 - 31.");
     if (!check_range(thrs, 0, 255))            env->ThrowError("edgelevel: threshold should be 0 - 255.");
     if (!check_range(bc, 0, 31))               env->ThrowError("edgelevel: bc should be 0 - 31.");
     if (!check_range(wc, 0, 31))               env->ThrowError("edgelevel: wc should be 0 - 31.");
     if (!check_range(threads, 0, MAX_THREADS)) env->ThrowError("edgelevel: threads should be 0 - %d.", MAX_THREADS);
+    if (!check_range(asmmode, 0, 2))           env->ThrowError("edgelevel: asmmode should be 0 - 2.");
 
+    prm.bit_depth = get_bitdepth(vi.pixel_type);
     prm.strength = strength;
     prm.thrs = thrs;
     prm.wc = wc;
     prm.bc = bc;
+    prm.avx2 = (asmmode == 0) ? ((env->GetCPUFlags() & CPUF_AVX2) != 0) : ((asmmode == 2) ? 1 : 0);
 
     ZeroMemory(&buf, sizeof(frame_buf_t));
 
@@ -168,19 +186,21 @@ PVideoFrame __stdcall edgelevel::GetFrame(int n, IScriptEnvironment *env) {
     if (vi.IsYUY2()) {
         copy_y_from_yuy2_sse2(buf.src_ptr[0], buf.src_pitch[0], src->GetReadPtr(), src->GetPitch(), src->GetRowSize() / 2, src->GetHeight());
 
-        buf.src_width[0] = src->GetRowSize() / 2;
-        buf.dst_width[0] = dst->GetRowSize() / 2;
+        int componentSize = vi.BytesFromPixels(1);
+        buf.src_width[0] = src->GetRowSize() / componentSize;
+        buf.dst_width[0] = dst->GetRowSize() / componentSize;
         buf.src_height[0] = src->GetHeight();
         buf.dst_height[0] = dst->GetHeight();
     } else {
         //YV12
+        int componentSize = vi.BytesFromPixels(1);
         buf.src_ptr[0] = (BYTE *)src->GetReadPtr();
         buf.dst_ptr[0] = dst->GetWritePtr();
         buf.src_pitch[0] = src->GetPitch();
         buf.dst_pitch[0] = dst->GetPitch();
-        buf.src_width[0] = src->GetRowSize();
+        buf.src_width[0] = src->GetRowSize() / componentSize;
         buf.src_height[0] = src->GetHeight();
-        buf.dst_width[0] = dst->GetRowSize();
+        buf.dst_width[0] = dst->GetRowSize() / componentSize;
         buf.dst_height[0] = dst->GetHeight();
     }
     //エッジレベル調整
@@ -199,7 +219,7 @@ PVideoFrame __stdcall edgelevel::GetFrame(int n, IScriptEnvironment *env) {
 #pragma warning(push)
 #pragma warning(disable:4100)
 AVSValue __cdecl Create_edgelevel(AVSValue args, void *user_data, IScriptEnvironment *env) {
-    return new edgelevel(args[0].AsClip(), args[1].AsInt(10), args[2].AsInt(16), args[3].AsInt(0), args[4].AsInt(0), args[5].AsInt(0), env);
+    return new edgelevel(args[0].AsClip(), args[1].AsInt(10), args[2].AsInt(16), args[3].AsInt(0), args[4].AsInt(0), args[5].AsInt(0), args[6].AsInt(0), env);
 }
 #pragma warning(pop)
 

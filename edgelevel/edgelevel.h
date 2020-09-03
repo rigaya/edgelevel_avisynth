@@ -57,6 +57,8 @@ typedef struct {
 	int thrs;      // 閾値
 	int bc;        // 黒補正
 	int wc;        // 白補正
+	int bit_depth; // bit深度
+	int avx2;
 } edegelevel_prm_t;
 
 typedef struct {
