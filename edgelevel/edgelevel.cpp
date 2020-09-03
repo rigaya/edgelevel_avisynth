@@ -12,6 +12,8 @@
 
 #include "edgelevel.h"
 
+const AVS_Linkage *AVS_linkage = 0;
+
 static void copy_y_from_yuy2_sse2(BYTE *dst_ptr, int dst_pitch, const BYTE *src_ptr, int src_pitch, int width, int height) {
     const BYTE *src, *src_fin;
     BYTE *dst;
@@ -173,8 +175,9 @@ AVSValue __cdecl Create_edgelevel(AVSValue args, void *user_data, IScriptEnviron
 }
 #pragma warning(pop)
 
-extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment *env)
+extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment *env, const AVS_Linkage *const vectors)
 {
-    env->AddFunction("edgelevel", "c[strength]i[threshold]i[bc]i[wc]i[threads]i", Create_edgelevel, 0);
+    AVS_linkage = vectors;
+    env->AddFunction("edgelevel", "c[strength]i[threshold]i[bc]i[wc]i[threads]i[asm]i", Create_edgelevel, 0);
     return "edgelevel for avisynth 0.00";
 }
