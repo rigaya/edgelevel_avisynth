@@ -148,7 +148,7 @@ static __forceinline __m128i edgelevel_sse2_8(
 }
 
 static __forceinline void edgelevel_sse2_8_line(
-    char *dst_line, const int dst_pitch,
+    char *dst_line,
     const char *src_line, const int src_pitch, int w,
     const __m128i &xThreshold, const __m128i &xStrength, const __m128i &xWc, const __m128i &xBc) {
     const char *src = src_line;
@@ -210,7 +210,7 @@ static void edgelevel_func_mt_sse2_8_avisynth(thread_t *th) {
         if (y < 2 || h - 3 < y) {
             memcpy(dst, src, w);
         } else {
-            edgelevel_sse2_8_line(dst, dst_pitch, src, src_pitch, w, xThreshold, xStrength, xWc, xBc);
+            edgelevel_sse2_8_line(dst, src, src_pitch, w, xThreshold, xStrength, xWc, xBc);
         }
     }
 }
@@ -288,7 +288,7 @@ static __forceinline __m128i edgelevel_sse2_16(
 }
 
 static __forceinline void edgelevel_sse2_16_line(
-    char *dst_line, const int dst_pitch,
+    char *dst_line,
     const char *src_line, const int src_pitch, int w,
     const __m128i& xThreshold, const __m128i& xStrength, const __m128i& xWc, const __m128i& xBc) {
     char *dst = dst_line;
@@ -354,7 +354,7 @@ static void edgelevel_func_mt_sse2_16_avisynth(thread_t *th) {
         if (y < 2 || h - 3 < y) {
             memcpy(dst, src, w * sizeof(uint16_t));
         } else {
-            edgelevel_sse2_16_line(dst, dst_pitch, src, src_pitch, w, xThreshold, xStrength, xWc, xBc);
+            edgelevel_sse2_16_line(dst, src, src_pitch, w, xThreshold, xStrength, xWc, xBc);
         }
     }
 }
