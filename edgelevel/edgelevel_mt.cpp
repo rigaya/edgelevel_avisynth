@@ -270,11 +270,10 @@ static __forceinline __m128i edgelevel_sse2_16(
 
     //dst->y = (std::min)( (std::max)( short( src->y + ((src->y - avg) * str >> (4)) ), min ), max );
     __m128i y0, y1;
-    //必ず -32768～32767の範囲に収める
+    y0 = _mm_sub_epi32(_mm_unpacklo_epi16(yAvg, _mm_setzero_si128()), _mm_unpacklo_epi16(xSrc1, _mm_setzero_si128()));
+    y1 = _mm_sub_epi32(_mm_unpackhi_epi16(yAvg, _mm_setzero_si128()), _mm_unpackhi_epi16(xSrc1, _mm_setzero_si128()));
+    //必ず -32768～32767の範囲に収めるので_mm_mullo_epi32でなく_mm_madd_epi16が使える
     //Avgはminとmaxの平均なので、かならずこの範囲に収まる
-    y1    = _mm_subs_epi16(yAvg, xSrc1);
-    y0    = _mm_unpacklo_epi16(y1, y1);
-    y1    = _mm_unpackhi_epi16(y1, y1);
     y0    = _mm_madd_epi16(y0, xStrength);
     y1    = _mm_madd_epi16(y1, xStrength);
     y0    = _mm_srai_epi32(y0, 4);
@@ -339,7 +338,7 @@ static void edgelevel_func_mt_sse2_16_avisynth(thread_t *th) {
     const int thrs = (th->prm.thrs << 7) >> (16 - bit_depth);
     const int bc = th->prm.bc << (bit_depth - 8);
     const int wc = th->prm.wc << (bit_depth - 8);
-    const __m128i xStrength = _mm_unpacklo_epi16(_mm_setzero_si128(), _mm_set1_epi16((short)(-1 * str)));
+    const __m128i xStrength = _mm_unpacklo_epi16(_mm_set1_epi16((short)(-1 * str)), _mm_setzero_si128());
     const __m128i xThreshold = _mm_set1_epi16((short)thrs);
     const __m128i xBc = _mm_set1_epi16((short)bc);
     const __m128i xWc = _mm_set1_epi16((short)wc);

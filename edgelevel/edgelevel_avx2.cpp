@@ -258,11 +258,9 @@ static __forceinline __m256i edgelevel_avx2_16(
 
     //dst->y = (std::min)( (std::max)( short( src->y + ((src->y - avg) * str >> (4)) ), min ), max );
     __m256i y0, y1;
-    //必ず -32768～32767の範囲に収める
-    //Avgはminとmaxの平均なので、かならずこの範囲に収まる
-    y1    = _mm256_subs_epi16(yAvg, ySrc1);
-    y0    = _mm256_unpacklo_epi16(y1, y1);
-    y1    = _mm256_unpackhi_epi16(y1, y1);
+    y0    = _mm256_sub_epi32(_mm256_unpacklo_epi16(yAvg, _mm256_setzero_si256()), _mm256_unpacklo_epi16(ySrc1, _mm256_setzero_si256()));
+    y1    = _mm256_sub_epi32(_mm256_unpackhi_epi16(yAvg, _mm256_setzero_si256()), _mm256_unpackhi_epi16(ySrc1, _mm256_setzero_si256()));
+    //y0, y1は必ず-32768～32767に収まるはずなので、_mm256_mullo_epi32でなく_mm256_madd_epi16が使える
     y0    = _mm256_madd_epi16(y0, yStrength);
     y1    = _mm256_madd_epi16(y1, yStrength);
     y0    = _mm256_srai_epi32(y0, 4);
@@ -327,7 +325,8 @@ void edgelevel_func_mt_avx2_16_avisynth(thread_t *th) {
     const int thrs = (th->prm.thrs << 7) >> (16 - bit_depth);
     const int bc = th->prm.bc << (bit_depth - 8);
     const int wc = th->prm.wc << (bit_depth - 8);
-    const __m256i yStrength = _mm256_unpacklo_epi16(_mm256_setzero_si256(), _mm256_set1_epi16((short)(-1 * str)));
+    //const __m256i yStrength = _mm256_set1_epi32((short)(-1 * str));
+    const __m256i yStrength = _mm256_unpacklo_epi16(_mm256_set1_epi16((short)(-1 * str)), _mm256_setzero_si256());
     const __m256i yThreshold = _mm256_set1_epi16((short)thrs);
     const __m256i yBc = _mm256_set1_epi16((short)bc);
     const __m256i yWc = _mm256_set1_epi16((short)wc);
