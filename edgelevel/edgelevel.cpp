@@ -110,6 +110,7 @@ private:
     mt_control_t mt_control;
     int threads;         // スレッド数
     frame_buf_t buf;
+    bool v8;
 
 public:
     edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, int _threads, int _simd, IScriptEnvironment *env);
@@ -170,6 +171,10 @@ edgelevel::edgelevel(PClip _child, int _strength, int _thrs, int _bc, int _wc, i
     }
     if (!AllocBuffer()) env->ThrowError("edgelevel: failed to allocate memory.");
     if (!CreateThreads(threads, &buf, &prm, &mt_control)) env->ThrowError("edgelevel: failed to create threads.");
+    
+    v8 = true;
+    try { env->CheckVersion(8); }
+    catch (const AvisynthError&) { v8 = false; };
 }
 
 edgelevel::~edgelevel() {
@@ -179,7 +184,7 @@ edgelevel::~edgelevel() {
 
 PVideoFrame __stdcall edgelevel::GetFrame(int n, IScriptEnvironment *env) {
     PVideoFrame src = child->GetFrame(n, env);
-    PVideoFrame dst = env->NewVideoFrame(vi);
+    PVideoFrame dst = (v8) ? env->NewVideoFrameP(vi, &src) : env->NewVideoFrame(vi);
 
     if (vi.IsYUY2()) {
         copy_y_from_yuy2_sse2(buf.src_ptr[0], buf.src_pitch[0], src->GetReadPtr(), src->GetPitch(), src->GetRowSize() / 2, src->GetHeight());
