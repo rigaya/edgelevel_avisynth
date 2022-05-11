@@ -254,7 +254,7 @@ static __forceinline __m128i edgelevel_sse2_16(
     __m128i yAvg = _mm_avg_epu16(xMax, xMin);
 
     //if (max - min > thrs)
-    yMask = _mm_cmpgt_epu16(_mm_subs_epi16(xMax, xMin), xThreshold);
+    yMask = _mm_cmpgt_epu16(_mm_subs_epu16(xMax, xMin), xThreshold);
 
     //if (src->y == max) max += wc * 2;
     //else max += wc;

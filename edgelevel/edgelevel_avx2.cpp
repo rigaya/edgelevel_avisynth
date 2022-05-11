@@ -242,7 +242,7 @@ static __forceinline __m256i edgelevel_avx2_16(
     __m256i yAvg = _mm256_avg_epu16(yMax, yMin);
 
     //if (max - min > thrs)
-    yMask = _mm256_cmpgt_epu16(_mm256_subs_epi16(yMax, yMin), yThreshold);
+    yMask = _mm256_cmpgt_epu16(_mm256_subs_epu16(yMax, yMin), yThreshold);
 
     //if (src->y == max) max += wc * 2;
     //else max += wc;
