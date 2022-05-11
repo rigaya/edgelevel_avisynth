@@ -311,7 +311,7 @@ static __forceinline void edgelevel_avx2_16_line(
         }
     }
     *(int *)dst_line = *(int *)src_line;
-    *(int *)(dst_line + w - 4) = *(int *)(src_line + w - 4);
+    *(int *)(dst_line + w * sizeof(uint16_t) - 4) = *(int *)(src_line + w * sizeof(uint16_t) - 4);
 }
 
 void edgelevel_func_mt_avx2_16_avisynth(thread_t *th) {

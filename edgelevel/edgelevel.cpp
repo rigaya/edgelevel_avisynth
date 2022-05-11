@@ -230,5 +230,5 @@ extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScri
 {
     AVS_linkage = vectors;
     env->AddFunction("edgelevel", "c[strength]i[threshold]i[bc]i[wc]i[threads]i[simd]i", Create_edgelevel, 0);
-    return "edgelevel for avisynth 0.03";
+    return "edgelevel for avisynth 0.04";
 }
